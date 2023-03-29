@@ -16,18 +16,19 @@ def dict_to_cpu(dictionary):
 
 class MuZeroNetwork:
     def __new__(cls, config):
+        state_plane_num = config.observation_shape[0]
+        action_plane_num = config.action_plane_num
+        total = state_plane_num + action_plane_num
+        fc_layers = [total, total]
         return MuZeroResidualNetwork(
             config.observation_shape,
-            config.stacked_observations,
             len(config.action_space),
+            config.action_plane_num,
             config.blocks,
-            config.channels,
-            config.reduced_channels_reward,
-            config.reduced_channels_value,
-            config.reduced_channels_policy,
-            config.resnet_fc_reward_layers,
-            config.resnet_fc_value_layers,
-            config.resnet_fc_policy_layers,
+            state_plane_num,
+            fc_layers,
+            fc_layers,
+            fc_layers,
         )
 
 
@@ -175,7 +176,7 @@ class PredictionNetwork(torch.nn.Module):
         num_blocks,
         num_channels,
         reduced_channels_value,
-        reduced_channels_policy,
+        # reduced_channels_policy,
         fc_value_layers,
         fc_policy_layers,
         block_output_size_value,
@@ -187,7 +188,8 @@ class PredictionNetwork(torch.nn.Module):
         )
 
         self.conv1x1_value = torch.nn.Conv2d(num_channels, reduced_channels_value, 1)
-        self.conv1x1_policy = torch.nn.Conv2d(num_channels, reduced_channels_policy, 1)
+        # self.conv1x1_policy = torch.nn.Conv2d(num_channels, reduced_channels_policy, 1)
+        self.conv1x1_policy = torch.nn.Conv2d(num_channels, reduced_channels_value, 1)
         self.block_output_size_value = block_output_size_value
         self.block_output_size_policy = block_output_size_policy
         self.fc_value = mlp(self.block_output_size_value, fc_value_layers, 1)
@@ -214,46 +216,31 @@ class MuZeroResidualNetwork(AbstractNetwork):
     def __init__(
         self,
         observation_shape,
-        stacked_observations,
         action_space_size,
+        action_plane_num: int,
         num_blocks,
         num_channels,
-        reduced_channels_reward,
-        reduced_channels_value,
-        reduced_channels_policy,
         fc_reward_layers,
         fc_value_layers,
         fc_policy_layers,
-        # support_size,
-        # downsample,
     ):
         super().__init__()
-        # self.action_space_size = action_space_size
-
+        reduced_channels = observation_shape[0]
         block_output_size_reward = (
-            reduced_channels_reward * observation_shape[1] * observation_shape[2]
+            reduced_channels * observation_shape[1] * observation_shape[2]
         )
-
         block_output_size_value = (
-            reduced_channels_value * observation_shape[1] * observation_shape[2]
+            reduced_channels * observation_shape[1] * observation_shape[2]
         )
-
         block_output_size_policy = (
-            reduced_channels_policy * observation_shape[1] * observation_shape[2]
+            reduced_channels * observation_shape[1] * observation_shape[2]
         )
 
-        # self.representation_network = RepresentationNetwork(
-        #     observation_shape,
-        #     stacked_observations,
-        #     num_blocks,
-        #     num_channels,
-        # )
-        k = 2
         self.dynamics_network = DynamicsNetwork(
             num_blocks,
-            num_channels + k,
-            k,
-            reduced_channels_reward,
+            num_channels + action_plane_num,
+            action_plane_num,
+            reduced_channels,
             fc_reward_layers,
             block_output_size_reward,
         )
@@ -262,8 +249,7 @@ class MuZeroResidualNetwork(AbstractNetwork):
             action_space_size,
             num_blocks,
             num_channels,
-            reduced_channels_value,
-            reduced_channels_policy,
+            reduced_channels,
             fc_value_layers,
             fc_policy_layers,
             block_output_size_value,
@@ -273,35 +259,6 @@ class MuZeroResidualNetwork(AbstractNetwork):
     def prediction(self, encoded_state):
         policy, value = self.prediction_network(encoded_state)
         return policy, value
-
-    # def representation(self, observation):
-    #     encoded_state = self.representation_network(observation)
-
-    #     # Scale encoded state between [0, 1] (See appendix paper Training)
-    #     min_encoded_state = (
-    #         encoded_state.view(
-    #             -1,
-    #             encoded_state.shape[1],
-    #             encoded_state.shape[2] * encoded_state.shape[3],
-    #         )
-    #         .min(2, keepdim=True)[0]
-    #         .unsqueeze(-1)
-    #     )
-    #     max_encoded_state = (
-    #         encoded_state.view(
-    #             -1,
-    #             encoded_state.shape[1],
-    #             encoded_state.shape[2] * encoded_state.shape[3],
-    #         )
-    #         .max(2, keepdim=True)[0]
-    #         .unsqueeze(-1)
-    #     )
-    #     scale_encoded_state = max_encoded_state - min_encoded_state
-    #     scale_encoded_state[scale_encoded_state < 1e-5] += 1e-5
-    #     encoded_state_normalized = (
-    #         encoded_state - min_encoded_state
-    #     ) / scale_encoded_state
-    #     return encoded_state_normalized
 
     def dynamics(self, encoded_state, action):
         # Stack encoded_state with a game specific one hot encoded action (See paper appendix Network Architecture)
@@ -344,23 +301,6 @@ class MuZeroResidualNetwork(AbstractNetwork):
             next_encoded_state - min_next_encoded_state
         ) / scale_next_encoded_state
         return next_encoded_state_normalized, reward
-
-    # def initial_inference(self, observation):
-    #     encoded_state = self.representation(observation)
-    #     policy_logits, value = self.prediction(encoded_state)
-    #     # reward equal to 0 for consistency
-    #     reward = 0
-    #     return (
-    #         value,
-    #         reward,
-    #         policy_logits,
-    #         encoded_state,
-    #     )
-
-    # def recurrent_inference(self, encoded_state, action):
-    #     next_encoded_state, reward = self.dynamics(encoded_state, action)
-    #     policy_logits, value = self.prediction(next_encoded_state)
-    #     return value, reward, policy_logits, next_encoded_state
 
     def inference(self, encoded_state, action):
         next_encoded_state, reward = self.dynamics(encoded_state, action)

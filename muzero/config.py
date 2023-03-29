@@ -9,7 +9,7 @@ from gymxq.constants import (
 import torch
 
 # 棋盘特征
-PLANE_NUM = 17
+STATE_PLANE_NUM = 17
 STACKED_NUM = 1
 
 
@@ -22,7 +22,7 @@ class MuZeroConfig:
 
         ### Game
         self.observation_shape = (
-            PLANE_NUM,
+            STATE_PLANE_NUM,
             NUM_ROW,
             NUM_COL,
         )  # Dimensions of the game observation, must be 3D (channel, height, width). For a 1D array, please reshape it to (1, 1, length of array)
@@ -34,15 +34,16 @@ class MuZeroConfig:
         )  # List of players. You should only edit the length
 
         # 特征
-        self.action_plane_num = 2
+        self.action_STATE_PLANE_NUM = 2
         self.stacked_observations = STACKED_NUM  # Number of previous observations and previous actions to add to the current observation
         self.encoded_observation_shape = (
             STACKED_NUM,
-            PLANE_NUM,
+            STATE_PLANE_NUM,
             NUM_ROW,
             NUM_COL,
         )
-        self.encoded_action_shape = (2, NUM_ROW, NUM_COL)
+        self.action_plane_num = 2
+        self.encoded_action_shape = (self.action_plane_num, NUM_ROW, NUM_COL)
         # Evaluate
         self.muzero_player = 1  # Turn Muzero begins to play (1: MuZero plays first, 2: MuZero plays second)
         self.opponent = 2  # Hard coded agent that MuZero faces to assess his progress in multiplayer games. It doesn't influence training. None, "random" or "expert" if implemented in the Game class
@@ -76,22 +77,22 @@ class MuZeroConfig:
         # self.blocks = 16  # Number of blocks in the ResNet
         self.blocks = 2  # Number of blocks in the ResNet
         # self.support_size = 1
-        self.channels = 256  # Number of channels in the ResNet
-        self.reduced_channels_reward = 256  # Number of channels in reward head
-        self.reduced_channels_value = 256  # Number of channels in value head
-        self.reduced_channels_policy = 256  # Number of channels in policy head
-        self.resnet_fc_reward_layers = [
-            256,
-            265,
-        ]  # Define the hidden layers in the reward head of the dynamic network
-        self.resnet_fc_value_layers = [
-            265,
-            265,
-        ]  # Define the hidden layers in the value head of the prediction network
-        self.resnet_fc_policy_layers = [
-            265,
-            265,
-        ]  # Define the hidden layers in the policy head of the prediction network
+        # self.channels = 256  # Number of channels in the ResNet
+        # self.reduced_channels_reward = 256  # Number of channels in reward head
+        # self.reduced_channels_value = 256  # Number of channels in value head
+        # self.reduced_channels_policy = 256  # Number of channels in policy head
+        # self.resnet_fc_reward_layers = [
+        #     256,
+        #     265,
+        # ]  # Define the hidden layers in the reward head of the dynamic network
+        # self.resnet_fc_value_layers = [
+        #     265,
+        #     265,
+        # ]  # Define the hidden layers in the value head of the prediction network
+        # self.resnet_fc_policy_layers = [
+        #     265,
+        #     265,
+        # ]  # Define the hidden layers in the policy head of the prediction network
 
         ### Training
         self.save_model = (

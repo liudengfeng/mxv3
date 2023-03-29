@@ -13,7 +13,7 @@ from gymxq.constants import (
 )
 from gymxq.utils import move_to_coordinate, render_board_to_text
 
-from .config import PLANE_NUM
+from .config import STATE_PLANE_NUM
 
 # 棋子编码
 PIECE_MAPS = {
@@ -161,13 +161,13 @@ def obs2feature(obs_dict: dict, info: dict, lr: bool = False, flatten: bool = Tr
         lr (bool, optional): 是否左右互换. Defaults to False.
         flatten (bool, optional): 是否展开为2维数组. Defaults to True.
     Returns:
-        ndarray: 4d (n,PLANE_NUM, NUM_ROW, NUM_COL) ndarray or 2d (n,PLANE_NUM*NUM_ROW*NUM_COL)
+        ndarray: 4d (n,STATE_PLANE_NUM, NUM_ROW, NUM_COL) ndarray or 2d (n,STATE_PLANE_NUM*NUM_ROW*NUM_COL)
     """
     is_vec = hasattr(obs_dict["to_play"], "__len__")
     n = 1
     if is_vec:
         n = len(obs_dict["to_play"])
-    res = np.zeros((n, PLANE_NUM, NUM_ROW, NUM_COL), dtype="float32")
+    res = np.zeros((n, STATE_PLANE_NUM, NUM_ROW, NUM_COL), dtype="float32")
     if not is_vec:
         state = ps2feature(obs_dict["s"])
         # steps = obs_dict["steps"]
@@ -234,7 +234,7 @@ def decode_observation(observation: np.ndarray):
         dict: 解码字典
     """
     assert isinstance(observation, np.ndarray), "解码对象必须为ndarray"
-    expected_shape = (PLANE_NUM, NUM_ROW, NUM_COL)
+    expected_shape = (STATE_PLANE_NUM, NUM_ROW, NUM_COL)
     assert observation.shape == expected_shape, "期望shape = {}, 输入 = {}".format(
         expected_shape, observation.shape
     )
