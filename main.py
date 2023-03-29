@@ -53,7 +53,8 @@ def train(logger, config: MuZeroConfig):
 
     test_worker = SelfTestPlayActor.options(num_gpus=gpu_on_selfplayer).remote(config)
 
-    reanalyse_worker = Reanalyse.options(num_gpus=gpu_on_selfplayer).remote(config)
+    if config.use_reanalyse:
+        reanalyse_worker = Reanalyse.options(num_gpus=gpu_on_selfplayer).remote(config)
 
     self_players = [
         SelfPlayActor.options(num_gpus=gpu_on_selfplayer).remote(config, i)
