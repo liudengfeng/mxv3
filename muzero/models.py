@@ -34,14 +34,17 @@ class MuZeroNetwork:
 class AbstractNetwork(ABC, torch.nn.Module):
     def __init__(self):
         super().__init__()
-        pass
+
+    # @abstractmethod
+    # def initial_inference(self, observation):
+    #     pass
+
+    # @abstractmethod
+    # def recurrent_inference(self, encoded_state, action):
+    #     pass
 
     @abstractmethod
-    def initial_inference(self, observation):
-        pass
-
-    @abstractmethod
-    def recurrent_inference(self, encoded_state, action):
+    def inference(self, encoded_state, action):
         pass
 
     def get_weights(self):
@@ -225,7 +228,7 @@ class MuZeroResidualNetwork(AbstractNetwork):
         # downsample,
     ):
         super().__init__()
-        self.action_space_size = action_space_size
+        # self.action_space_size = action_space_size
 
         block_output_size_reward = (
             reduced_channels_reward * observation_shape[1] * observation_shape[2]
@@ -239,30 +242,11 @@ class MuZeroResidualNetwork(AbstractNetwork):
             reduced_channels_policy * observation_shape[1] * observation_shape[2]
         )
 
-        # self.representation_network = torch.nn.DataParallel(
-        #     RepresentationNetwork(
-        #         observation_shape,
-        #         stacked_observations,
-        #         num_blocks,
-        #         num_channels,
-        #     )
-        # )
-
-        self.representation_network = RepresentationNetwork(
-            observation_shape,
-            stacked_observations,
-            num_blocks,
-            num_channels,
-        )
-
-        # self.dynamics_network = torch.nn.DataParallel(
-        #     DynamicsNetwork(
-        #         num_blocks,
-        #         num_channels + 1,
-        #         reduced_channels_reward,
-        #         fc_reward_layers,
-        #         block_output_size_reward,
-        #     )
+        # self.representation_network = RepresentationNetwork(
+        #     observation_shape,
+        #     stacked_observations,
+        #     num_blocks,
+        #     num_channels,
         # )
         k = 2
         self.dynamics_network = DynamicsNetwork(
@@ -273,20 +257,6 @@ class MuZeroResidualNetwork(AbstractNetwork):
             fc_reward_layers,
             block_output_size_reward,
         )
-
-        # self.prediction_network = torch.nn.DataParallel(
-        #     PredictionNetwork(
-        #         action_space_size,
-        #         num_blocks,
-        #         num_channels,
-        #         reduced_channels_value,
-        #         reduced_channels_policy,
-        #         fc_value_layers,
-        #         fc_policy_layers,
-        #         block_output_size_value,
-        #         block_output_size_policy,
-        #     )
-        # )
 
         self.prediction_network = PredictionNetwork(
             action_space_size,
@@ -304,34 +274,34 @@ class MuZeroResidualNetwork(AbstractNetwork):
         policy, value = self.prediction_network(encoded_state)
         return policy, value
 
-    def representation(self, observation):
-        encoded_state = self.representation_network(observation)
+    # def representation(self, observation):
+    #     encoded_state = self.representation_network(observation)
 
-        # Scale encoded state between [0, 1] (See appendix paper Training)
-        min_encoded_state = (
-            encoded_state.view(
-                -1,
-                encoded_state.shape[1],
-                encoded_state.shape[2] * encoded_state.shape[3],
-            )
-            .min(2, keepdim=True)[0]
-            .unsqueeze(-1)
-        )
-        max_encoded_state = (
-            encoded_state.view(
-                -1,
-                encoded_state.shape[1],
-                encoded_state.shape[2] * encoded_state.shape[3],
-            )
-            .max(2, keepdim=True)[0]
-            .unsqueeze(-1)
-        )
-        scale_encoded_state = max_encoded_state - min_encoded_state
-        scale_encoded_state[scale_encoded_state < 1e-5] += 1e-5
-        encoded_state_normalized = (
-            encoded_state - min_encoded_state
-        ) / scale_encoded_state
-        return encoded_state_normalized
+    #     # Scale encoded state between [0, 1] (See appendix paper Training)
+    #     min_encoded_state = (
+    #         encoded_state.view(
+    #             -1,
+    #             encoded_state.shape[1],
+    #             encoded_state.shape[2] * encoded_state.shape[3],
+    #         )
+    #         .min(2, keepdim=True)[0]
+    #         .unsqueeze(-1)
+    #     )
+    #     max_encoded_state = (
+    #         encoded_state.view(
+    #             -1,
+    #             encoded_state.shape[1],
+    #             encoded_state.shape[2] * encoded_state.shape[3],
+    #         )
+    #         .max(2, keepdim=True)[0]
+    #         .unsqueeze(-1)
+    #     )
+    #     scale_encoded_state = max_encoded_state - min_encoded_state
+    #     scale_encoded_state[scale_encoded_state < 1e-5] += 1e-5
+    #     encoded_state_normalized = (
+    #         encoded_state - min_encoded_state
+    #     ) / scale_encoded_state
+    #     return encoded_state_normalized
 
     def dynamics(self, encoded_state, action):
         # Stack encoded_state with a game specific one hot encoded action (See paper appendix Network Architecture)
@@ -375,19 +345,24 @@ class MuZeroResidualNetwork(AbstractNetwork):
         ) / scale_next_encoded_state
         return next_encoded_state_normalized, reward
 
-    def initial_inference(self, observation):
-        encoded_state = self.representation(observation)
-        policy_logits, value = self.prediction(encoded_state)
-        # reward equal to 0 for consistency
-        reward = 0
-        return (
-            value,
-            reward,
-            policy_logits,
-            encoded_state,
-        )
+    # def initial_inference(self, observation):
+    #     encoded_state = self.representation(observation)
+    #     policy_logits, value = self.prediction(encoded_state)
+    #     # reward equal to 0 for consistency
+    #     reward = 0
+    #     return (
+    #         value,
+    #         reward,
+    #         policy_logits,
+    #         encoded_state,
+    #     )
 
-    def recurrent_inference(self, encoded_state, action):
+    # def recurrent_inference(self, encoded_state, action):
+    #     next_encoded_state, reward = self.dynamics(encoded_state, action)
+    #     policy_logits, value = self.prediction(next_encoded_state)
+    #     return value, reward, policy_logits, next_encoded_state
+
+    def inference(self, encoded_state, action):
         next_encoded_state, reward = self.dynamics(encoded_state, action)
         policy_logits, value = self.prediction(next_encoded_state)
         return value, reward, policy_logits, next_encoded_state

@@ -32,6 +32,9 @@ class MuZeroConfig:
         self.players = list(
             range(1, NUM_PLAYER + 1)
         )  # List of players. You should only edit the length
+
+        # 特征
+        self.action_plane_num = 2
         self.stacked_observations = STACKED_NUM  # Number of previous observations and previous actions to add to the current observation
         self.encoded_observation_shape = (
             STACKED_NUM,
@@ -149,6 +152,7 @@ class MuZeroConfig:
             "3k5/2P1P4/9/9/9/9/9/9/4p1p2/5K3 r - 110 0 180"  # 初始fen字符串，正式训练时应设置为空白字符串
         )
 
+        # 实验参数
         self.runs = 0  # 实验次数，用于管理存储实验数据路径
         self.debug_mcts = False  # 是否显示搜索树信息
         self.debug_duration = False  # 是否显示搜索树信息
