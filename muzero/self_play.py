@@ -10,8 +10,9 @@ from gymnasium.wrappers.record_video import RecordVideo
 from gymxq.constants import *
 
 from .feature_utils import obs2feature
-from .mcts import MCTS, GameHistory, render_root
+from .mcts import MCTS, GameHistory
 from .models import MuZeroNetwork
+from .node import render_root
 from .path_utils import get_experiment_path
 from .utils import duration_repr
 

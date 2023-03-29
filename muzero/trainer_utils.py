@@ -43,13 +43,13 @@ def _update_weights(
     # gradient_scale_batch: batch, num_unroll_steps+1
 
     ## Generate predictions
-    value, reward, policy_logits, hidden_state = model.initial_inference(
-        observation_batch
+    value, reward, policy_logits, hidden_state = model.inference(
+        observation_batch, action_batch[:, 0]
     )
     predictions = [(value, reward, policy_logits)]
 
     for i in range(1, action_batch.shape[1]):
-        value, reward, policy_logits, hidden_state = model.recurrent_inference(
+        value, reward, policy_logits, hidden_state = model.inference(
             hidden_state, action_batch[:, i]
         )
         # Scale the gradient at the start of the dynamics function (See paper appendix Training)
@@ -78,7 +78,7 @@ def _update_weights(
 
     for i in range(1, len(predictions)):
         value, reward, policy_logits = predictions[i]
-        (current_value_loss, current_reward_loss, current_policy_loss,) = loss_function(
+        (current_value_loss, current_reward_loss, current_policy_loss) = loss_function(
             value,
             reward,
             policy_logits,

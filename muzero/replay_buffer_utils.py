@@ -92,7 +92,7 @@ def make_target(game_history, state_index, config, encode_actions=True):
     last_reward = game_history.reward_history[num]
     last_action = game_history.action_history[num]
 
-    pi = [0] * len(game_history.child_visits[0])
+    pi = [0.0] * len(game_history.child_visits[0])
 
     for current_index in range(state_index, state_index + config.num_unroll_steps + 1):
         value = compute_target_value(game_history, current_index, config)
