@@ -60,12 +60,12 @@ class MuZeroConfig:
         # 使用增加模式
         # self.num_simulations = 400  # Number of future moves self-simulated 论文：800 缩小至400
         self.num_simulations = 400  # Number of future moves self-simulated
-        self.discount_factor = 0.997  # Chronological discount of the reward
+        self.discount_factor = 0.995  # Chronological discount of the reward
         self.temperature_threshold = None  # Number of moves before dropping the temperature given by visit_softmax_temperature_fn to 0 (ie selecting the best action). If None, visit_softmax_temperature_fn is used every time
 
         # Root prior exploration noise
         self.root_dirichlet_alpha = 0.25
-        self.root_exploration_fraction = 0.25
+        self.root_exploration_fraction = 0.25  
 
         # UCB formula
         self.pb_c_base = 19652

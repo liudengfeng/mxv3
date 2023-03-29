@@ -1,7 +1,3 @@
-"""Builders for distributed training.
-1. 便于直观，特征暂时不编码
-2. 序列环境使用简单环境包装，添加视频记录功能
-"""
 import gymnasium as gym
 import gymxq
 import numpy as np

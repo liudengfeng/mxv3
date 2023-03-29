@@ -60,7 +60,11 @@ def _update_weights(
     value_loss, reward_loss, policy_loss = (0, 0, 0)
     value, reward, policy_logits = predictions[0]
     # Ignore reward loss for the first batch step
-    (current_value_loss, current_reward_loss, current_policy_loss,) = loss_function(
+    (
+        current_value_loss,
+        current_reward_loss,
+        current_policy_loss,
+    ) = loss_function(
         value,
         reward,
         policy_logits,
@@ -78,7 +82,11 @@ def _update_weights(
 
     for i in range(1, len(predictions)):
         value, reward, policy_logits = predictions[i]
-        (current_value_loss, current_reward_loss, current_policy_loss,) = loss_function(
+        (
+            current_value_loss,
+            current_reward_loss,
+            current_policy_loss,
+        ) = loss_function(
             value,
             reward,
             policy_logits,
@@ -228,12 +236,13 @@ def loss_function(
     target_reward,
     target_policy,
 ):
-    # L1Loss
-    # reward_loss_fn = torch.nn.MSELoss(reduction="none")
-    reward_loss_fn = torch.nn.L1Loss(reduction="none")
-    reward_loss = reward_loss_fn(reward, target_reward)
-    # value_loss_fn = torch.nn.MSELoss(reduction="none")
-    value_loss_fn = torch.nn.L1Loss(reduction="none")
+    if isinstance(reward, torch.Tensor):
+        reward_loss_fn = torch.nn.MSELoss(reduction="none")
+        # (batch,)
+        reward_loss = reward_loss_fn(reward, target_reward)
+    else:
+        reward_loss = 0
+    value_loss_fn = torch.nn.MSELoss(reduction="none")
     # (batch,)
     value_loss = value_loss_fn(value, target_value)
     # policy_logits Predicted unnormalized logits

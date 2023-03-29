@@ -4,7 +4,6 @@ import torch
 from gymxq.constants import NUM_ACTIONS
 
 from muzero.config import NUM_COL, NUM_ROW, STATE_PLANE_NUM, MuZeroConfig
-from muzero.feature_utils import encoded_action
 from muzero.models import MuZeroNetwork
 
 
@@ -32,7 +31,7 @@ def my_test_model():
 
 
 def test_dynamics():
-    workers = 8
+    workers = 2
     model = my_test_model()
     encoded_action_shape = (workers, 2, NUM_ROW, NUM_COL)
     state_shape = (workers, STATE_PLANE_NUM, NUM_ROW, NUM_COL)
@@ -44,7 +43,7 @@ def test_dynamics():
 
 
 def test_inference():
-    workers = 8
+    workers = 6
     model = my_test_model()
     encoded_action_shape = (workers, 2, NUM_ROW, NUM_COL)
     state_shape = (workers, STATE_PLANE_NUM, NUM_ROW, NUM_COL)
