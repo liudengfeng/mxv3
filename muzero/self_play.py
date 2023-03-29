@@ -9,7 +9,7 @@ import torch
 from gymnasium.wrappers.record_video import RecordVideo
 from gymxq.constants import *
 
-from .feature_utils import encoded_action, obs2feature
+from .feature_utils import obs2feature
 from .mcts import MCTS, GameHistory, render_root
 from .models import MuZeroNetwork
 from .path_utils import get_experiment_path
@@ -76,10 +76,6 @@ class BaseSelfPlay:
         game_history = GameHistory()
         obs, info = self.environment.reset()
         observation = obs2feature(obs, info, flatten=False)
-        # last_a = game_history.action_history[-1]
-        # observation = np.concatenate(
-        #     [encoded_action(last_a)[np.newaxis, :], observation], axis=1
-        # )
 
         game_history.observation_history.append(observation)
         to_play = info["to_play"]
@@ -153,11 +149,6 @@ class BaseSelfPlay:
                 episode_steps += 1
 
                 observation = obs2feature(obs, info, flatten=False)
-
-                # last_a = game_history.action_history[-1]
-                # observation = np.concatenate(
-                #     [encoded_action(last_a)[np.newaxis, :], observation], axis=1
-                # )
 
                 game_history.store_search_statistics(root, self.config.action_space)
 

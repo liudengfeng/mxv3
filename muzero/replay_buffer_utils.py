@@ -92,14 +92,7 @@ def make_target(game_history, state_index, config, encode_actions=True):
     last_reward = game_history.reward_history[num]
     last_action = game_history.action_history[num]
 
-    # last_action = 1.0
     pi = [0] * len(game_history.child_visits[0])
-    pi[last_action] = 1.0
-
-    # 正常终止状态适用
-    last_value = (
-        game_history.root_values[num - 1] if game_history.terminated_history[num] else 0
-    )
 
     for current_index in range(state_index, state_index + config.num_unroll_steps + 1):
         value = compute_target_value(game_history, current_index, config)
@@ -110,19 +103,15 @@ def make_target(game_history, state_index, config, encode_actions=True):
             actions.append(game_history.action_history[current_index])
         # 吸收状态
         else:
-            # 方案
             if current_index == num:
-                target_values.append(last_value)
+                target_values.append(0)
                 target_rewards.append(last_reward)
+                actions.append(last_action)
             else:
-                # tgt_value = last_value / config.discount_factor ** (
-                #     current_index - state_index - 1
-                # )
-                # target_values.append(tgt_value)
                 target_values.append(0)
                 target_rewards.append(0)
+                actions.append(NUM_ACTIONS)
             target_policies.append(pi)
-            actions.append(last_action)
     if encode_actions:
         # a -> (2,10,9)
         actions = [encoded_action(a) for a in actions]
