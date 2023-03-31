@@ -27,6 +27,8 @@ def test_mcts():
     config = my_test_config()
     model = my_test_model()
     model.eval()
-    observations = np.random.random((1, 17, 10, 9))
+    workers = 1
+    observations = np.random.random((workers, 19, 10, 9))
     root, extra_info = MCTS(config).run(model, observations, [1, 2, 3], 1, True)
-    assert root.hidden_state.shape == config.encoded_observation_shape
+    expected_shape = (workers, config.channels, 10, 9)
+    assert root.hidden_state.shape == expected_shape
