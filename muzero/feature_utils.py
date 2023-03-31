@@ -13,6 +13,7 @@ from gymxq.constants import (
 )
 from gymxq.utils import move_to_coordinate, render_board_to_text
 
+from .utils import get_lr_feature
 from .config import STATE_PLANE_NUM
 
 # 棋子编码
@@ -62,6 +63,7 @@ def ps2feature(ps):
     Returns:
         3d: (14,10,9) array
     """
+    assert ps.shape == (NUM_ROW * NUM_COL,), "棋盘棋子形状须等于(10*9,)"
     f = np.zeros((2 * NUM_PIECE, NUM_ROW, NUM_COL))
     # 14 * 10 * 9 【忽略0值】
     arr = ps.reshape((NUM_ROW, NUM_COL))
@@ -95,39 +97,12 @@ def encoded_action(action: int, lr: bool = False):
         return res
 
 
-# def concatenated_feature(
-#     state,
-#     steps,
-#     e,
-#     p,
-#     lr: bool = False,
-# ):
-#     """棋局合并特征
-#     Args:
-#         obs_dict (dict): 棋局特征字典
-#         lr (bool, optional): 是否左右互换. Defaults to False.
-#     Returns:
-#         3d: (17, 10, 9) ndarray
-#     """
-#     # 6480 bytes
-#     # 100万 ~6G
-#     res = np.concatenate(
-#         (
-#             state if not lr else np.fliplr(state),
-#             np.full((1, NUM_ROW, NUM_COL), steps) / MAX_EPISODE_STEPS,
-#             np.full((1, NUM_ROW, NUM_COL), e) / MAX_NUM_NO_EAT,
-#             np.full((1, NUM_ROW, NUM_COL), p) / NUM_PLAYER,
-#         ),
-#         axis=0,
-#         dtype="float32",
-#     )
-#     return res
-
-
 def concatenated_feature(
     state,
-    p,
+    p: int,
     last_action: int,
+    steps: int,
+    e: int,
     lr: bool = False,
 ):
     """棋局合并特征
@@ -135,16 +110,16 @@ def concatenated_feature(
         obs_dict (dict): 棋局特征字典
         lr (bool, optional): 是否左右互换. Defaults to False.
     Returns:
-        3d: (17, 10, 9) ndarray
+        3d: (19, 10, 9) ndarray
     """
     # 6480 bytes
     # 100万 ~6G
     res = np.concatenate(
         (
-            state if not lr else np.fliplr(state),
+            state if not lr else get_lr_feature(state),
             encoded_action(last_action, lr),
-            # np.full((1, NUM_ROW, NUM_COL), steps) / MAX_EPISODE_STEPS,
-            # np.full((1, NUM_ROW, NUM_COL), e) / MAX_NUM_NO_EAT,
+            np.full((1, NUM_ROW, NUM_COL), steps) / MAX_EPISODE_STEPS,
+            np.full((1, NUM_ROW, NUM_COL), e) / MAX_NUM_NO_EAT,
             np.full((1, NUM_ROW, NUM_COL), p) / NUM_PLAYER,
         ),
         axis=0,
@@ -170,21 +145,19 @@ def obs2feature(obs_dict: dict, info: dict, lr: bool = False, flatten: bool = Tr
     res = np.zeros((n, STATE_PLANE_NUM, NUM_ROW, NUM_COL), dtype="float32")
     if not is_vec:
         state = ps2feature(obs_dict["s"])
-        # steps = obs_dict["steps"]
-        # e = obs_dict["continuous_uneaten"]
+        steps = obs_dict["steps"]
+        e = obs_dict["continuous_uneaten"]
         p = obs_dict["to_play"]
         last_action = info["last_action"]
-        # res[0] = concatenated_feature(state, steps, e, p, lr)
-        res[0] = concatenated_feature(state, p, last_action, lr)
+        res[0] = concatenated_feature(state, p, last_action, steps, e, lr)
     else:
         for i in range(n):
             state = ps2feature(obs_dict["s"][i])
-            # steps = obs_dict["steps"][i]
-            # e = obs_dict["continuous_uneaten"][i]
+            steps = obs_dict["steps"][i]
+            e = obs_dict["continuous_uneaten"][i]
             p = obs_dict["to_play"][i]
             last_action = info["last_action"][i]
-            # res[i] = concatenated_feature(state, steps, e, p, lr)
-            res[i] = concatenated_feature(state, p, last_action, lr)
+            res[i] = concatenated_feature(state, p, last_action, steps, e, lr)
     if flatten:
         return res.reshape((n, -1))
     else:
