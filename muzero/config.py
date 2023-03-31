@@ -9,7 +9,7 @@ from gymxq.constants import (
 import torch
 
 # 棋盘特征
-STATE_PLANE_NUM = 17
+STATE_PLANE_NUM = 19
 STACKED_NUM = 1
 
 
@@ -76,23 +76,19 @@ class MuZeroConfig:
         # 8层 模型检查点 366M 2层 模型检查点 204M
         # self.blocks = 16  # Number of blocks in the ResNet
         self.blocks = 2  # Number of blocks in the ResNet
-        # self.support_size = 1
-        # self.channels = 256  # Number of channels in the ResNet
-        # self.reduced_channels_reward = 256  # Number of channels in reward head
-        # self.reduced_channels_value = 256  # Number of channels in value head
-        # self.reduced_channels_policy = 256  # Number of channels in policy head
-        # self.resnet_fc_reward_layers = [
-        #     256,
-        #     265,
-        # ]  # Define the hidden layers in the reward head of the dynamic network
-        # self.resnet_fc_value_layers = [
-        #     265,
-        #     265,
-        # ]  # Define the hidden layers in the value head of the prediction network
-        # self.resnet_fc_policy_layers = [
-        #     265,
-        #     265,
-        # ]  # Define the hidden layers in the policy head of the prediction network
+        self.channels = 256  # Number of channels in the ResNet
+        self.reduced_channels_reward = 256  # Number of channels in reward head
+        self.reduced_channels_value = 256  # Number of channels in value head
+        self.reduced_channels_policy = 256  # Number of channels in policy head
+        self.resnet_fc_reward_layers = [
+            256,
+        ]  # Define the hidden layers in the reward head of the dynamic network
+        self.resnet_fc_value_layers = [
+            256,
+        ]  # Define the hidden layers in the value head of the prediction network
+        self.resnet_fc_policy_layers = [
+            256,
+        ]  # Define the hidden layers in the policy head of the prediction network
 
         ### Training
         self.save_model = (

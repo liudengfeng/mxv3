@@ -9,14 +9,6 @@ from muzero.models import MuZeroNetwork
 
 def my_test_config():
     config = MuZeroConfig()
-    # = plane number
-    # config.channels = 17
-    # config.reduced_channels_reward = 19
-    # config.reduced_channels_value = 19
-    # config.reduced_channels_policy = 19
-    # config.resnet_fc_reward_layers = [19, 19]
-    # config.resnet_fc_value_layers = [19, 19]
-    # config.resnet_fc_policy_layers = [19, 19]
     return config
 
 
@@ -31,18 +23,22 @@ def my_test_model():
 
 
 def test_dynamics():
+    config = my_test_config()
     workers = 2
     model = my_test_model()
     encoded_action_shape = (workers, 2, NUM_ROW, NUM_COL)
     state_shape = (workers, STATE_PLANE_NUM, NUM_ROW, NUM_COL)
     observations = torch.rand(state_shape, dtype=torch.float32)
     actions = torch.rand(encoded_action_shape, dtype=torch.float32)
-    encoded_state, reward = model.dynamics(observations, actions)
-    assert encoded_state.shape == state_shape
+    encoded_state = model.representation(observations)
+    next_state, reward = model.dynamics(encoded_state, actions)
+    expected_shape = (workers, config.channels, NUM_ROW, NUM_COL)
+    assert next_state.shape == expected_shape
     assert reward.shape == (workers,)
 
 
 def test_inference():
+    config = my_test_config()
     workers = 6
     model = my_test_model()
     encoded_action_shape = (workers, 2, NUM_ROW, NUM_COL)
@@ -53,9 +49,24 @@ def test_inference():
         root_predicted_value,
         reward,
         policy_logits,
-        hidden_state,
+        next_state,
     ) = model.inference(observations, actions)
+
+    expected_shape = (workers, config.channels, NUM_ROW, NUM_COL)
     assert root_predicted_value.shape == (workers,)
     assert reward.shape == (workers,)
     assert policy_logits.shape == (workers, NUM_ACTIONS)
-    assert hidden_state.shape == state_shape
+    assert next_state.shape == expected_shape
+
+    # 递归推理
+    actions = torch.rand(encoded_action_shape, dtype=torch.float32)
+    (
+        root_predicted_value,
+        reward,
+        policy_logits,
+        next_state,
+    ) = model.inference(next_state, actions)
+    assert root_predicted_value.shape == (workers,)
+    assert reward.shape == (workers,)
+    assert policy_logits.shape == (workers, NUM_ACTIONS)
+    assert next_state.shape == expected_shape
