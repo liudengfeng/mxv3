@@ -77,7 +77,7 @@ class MCTS:
             reward,
             policy_logits,
             hidden_state,
-            debug=True if self.config.debug_mcts else False,
+            debug=True if self.config.debug_mcts and self.config.use_test else False,
         )
 
         if add_exploration_noise:

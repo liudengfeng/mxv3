@@ -65,7 +65,7 @@ class MuZeroConfig:
 
         # Root prior exploration noise
         self.root_dirichlet_alpha = 0.25
-        self.root_exploration_fraction = 0.25  
+        self.root_exploration_fraction = 0.25
 
         # UCB formula
         self.pb_c_base = 19652
@@ -95,10 +95,9 @@ class MuZeroConfig:
             True  # Save the checkpoint in results_path as model.checkpoint
         )
         self.training_steps = int(1e6)
-        # self.steps_before_train = 100
         # Total number of training steps (ie weights update according to a batch)
         self.batch_size = (
-            1024  # Number of parts of games to train on at each training step
+            256  # Number of parts of games to train on at each training step
         )
         # 等待自玩对局累计步数达此标准后才进行训练
         self.steps_before_train = 200
@@ -121,7 +120,7 @@ class MuZeroConfig:
         self.momentum = 0.9  # Used only if optimizer is SGD
 
         # 线性递减上下界学习速率
-        self.lr_init = 0.003  # Initial learning rate
+        self.lr_init = 0.001  # Initial learning rate
         self.lr_end = 0.0001  # Set it to 1 to use a constant learning rate
 
         ### Replay Buffer
@@ -151,6 +150,7 @@ class MuZeroConfig:
 
         # 实验参数
         self.runs = 0  # 实验次数，用于管理存储实验数据路径
+        self.use_test = False
         self.debug_mcts = False  # 是否显示搜索树信息
         self.debug_duration = False  # 是否显示搜索树信息
         self.mcts_fmt = "svg"  # 搜索树文件格式 [svg,png]
