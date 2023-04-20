@@ -228,13 +228,12 @@ def loss_function(
     target_reward,
     target_policy,
 ):
-    # reward_loss_fn = torch.nn.MSELoss(reduction="none")
+    reward_loss_fn = torch.nn.MSELoss(reduction="none")
     # -1, 1
-    reward_loss_fn = torch.nn.HingeEmbeddingLoss(reduction="none")
     reward_loss = reward_loss_fn(reward, target_reward)
     # L1Loss
-    # value_loss_fn = torch.nn.MSELoss(reduction="none")
-    value_loss_fn = torch.nn.L1Loss(reduction="none")
+    value_loss_fn = torch.nn.MSELoss(reduction="none")
+    # value_loss_fn = torch.nn.L1Loss(reduction="none")
     # (batch,)
     value_loss = value_loss_fn(value, target_value)
     # policy_logits Predicted unnormalized logits

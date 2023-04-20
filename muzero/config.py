@@ -97,18 +97,17 @@ class MuZeroConfig:
         self.training_steps = int(1e6)
         # Total number of training steps (ie weights update according to a batch)
         self.batch_size = (
-            256  # Number of parts of games to train on at each training step
+            512  # Number of parts of games to train on at each training step
         )
         # 等待自玩对局累计步数达此标准后才进行训练
-        self.steps_before_train = 200
+        self.steps_before_train = 20
         # 缓存N自玩对局后报告动态
         self.buffer_report_interval = 10
+
+        self.sleep_interval = 30  # 休眠
         # 每N次训练后保存检查点
-        self.checkpoint_interval = max(
-            self.training_steps // 1000, 10
-        )  # save checkpoint interval
-        # self.test_interval = max(self.checkpoint_interval // 2, 5)
-        self.test_interval = 1000
+        self.checkpoint_interval = 600  # save checkpoint interval
+        self.test_interval = 300
         # 更新代理模型参数
         # self.update_model_interval = max(self.test_interval // 2, 2)
         self.update_model_interval = 1

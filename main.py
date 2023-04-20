@@ -110,13 +110,13 @@ if __name__ == "__main__":
         "--num_workers",
         type=int,
         # default=os.cpu_count() - 2,
-        default=6,
+        default=12,
         help="Number of self play actors running concurrently (default: %(default)s)",
     )
     parser.add_argument(
         "--runs",
         type=int,
-        default=1,
+        default=3,
         help="Experiment serial number (default: %(default)s)",
     )
     parser.add_argument(
@@ -152,12 +152,6 @@ if __name__ == "__main__":
         help="训练中是否测试。(default: %(default)s)",
     )
     parser.add_argument(
-        "--use_reanalyse",
-        action="store_true",
-        default=False,
-        help="训练中是否再分析。(default: %(default)s)",
-    )
-    parser.add_argument(
         "--debug_mcts",
         action="store_true",
         default=True,
@@ -168,6 +162,12 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="是否显示每次MCTS搜索用时。正式环境下应设置`False` (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--use_reanalyse",
+        action="store_true",
+        default=False,
+        help="训练中是否再分析。(default: %(default)s)",
     )
     parser.add_argument(
         "--reset",

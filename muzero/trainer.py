@@ -115,6 +115,7 @@ class Trainer:
                 # 覆盖式存储
                 shared_storage.save_checkpoint.remote()
                 replay_buffer.save_buffer.remote()
+            
 
             shared_storage.set_info.remote(
                 {
@@ -139,6 +140,9 @@ class Trainer:
 
             if self.training_step > self.config.training_steps + 1:
                 break
+
+            if self.training_step % self.config.sleep_interval == 0:
+                time.sleep(2)
 
         shared_storage.set_info.remote("terminate", True)
         # 保存检查点

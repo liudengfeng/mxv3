@@ -54,6 +54,8 @@ class SelfPlayActor(SelfPlay):
                 per_step,
             )
             print(msg)
+            if training_step % self.config.sleep_interval == 0:
+                time.sleep(0.5)
 
 
 @ray.remote
